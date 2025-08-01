@@ -1,0 +1,30 @@
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+
+# dotenv secrets
+.env
+
+# DB dumps/backups
+*.sql
+
+# Compiled output (if using TypeScript)
+dist/
+build/
+
+# System files
+.DS_Store
+*.swp
+*.swo
+
+# IDE config
+.vscode/
+.idea/
