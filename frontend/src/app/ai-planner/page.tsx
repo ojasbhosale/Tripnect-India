@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { MapPin, Plus, Calendar, Users, Trash2, Eye, LogOut } from "lucide-react"
+import { MapPin, Plus, Calendar, Users, Trash2, Eye } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { authService } from "@/services/auth"
 import { tripService } from "@/services/trips"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import Navbar from "@/components/navbar"
 
 interface Trip {
   id: number
@@ -60,7 +61,6 @@ export default function Dashboard() {
 
   const deleteTrip = async (tripId: number) => {
     if (!confirm("Are you sure you want to delete this trip?")) return
-
     try {
       await tripService.deleteTrip(tripId)
       setTrips(trips.filter((trip) => trip.id !== tripId))
@@ -71,16 +71,6 @@ export default function Dashboard() {
         description: error.message || "Failed to delete trip",
         variant: "destructive",
       })
-    }
-  }
-
-  const handleLogout = async () => {
-    try {
-      await authService.logout()
-      router.push("/")
-    } catch (error) {
-      console.error("Logout error:", error)
-      router.push("/")
     }
   }
 
@@ -101,46 +91,40 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-2">
-              <MapPin className="h-8 w-8 text-indigo-600" />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">TripNect India</h1>
-                {user && <p className="text-sm text-gray-600">Welcome back, {user.name}!</p>}
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link href="/ai-planner/plan">
-                <Button className="bg-indigo-600 hover:bg-indigo-700">
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Trip
-                </Button>
-              </Link>
-              <Button variant="outline" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Navbar */}
+      <Navbar />
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Your Road Trips</h2>
-          <p className="text-gray-600">Manage and view all your planned adventures</p>
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-indigo-50 to-blue-100 border-b">
+        <div className="container mx-auto px-4 py-12 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            Plan Your Next Adventure with <span className="text-indigo-600">AI</span>
+          </h1>
+          <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
+            Create smart itineraries, organize your trips, and keep all your journeys in one place.
+          </p>
+          <Link href="/ai-planner/plan">
+            <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 px-8 py-4 text-lg">
+              <Plus className="h-5 w-5 mr-2" />
+              Start a New Trip
+            </Button>
+          </Link>
+        </div>
+      </section>
+
+      {/* Recent Trips */}
+      <main className="container mx-auto px-4 py-10 flex-1 w-full">
+        <div className="mb-8 text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Recent Trips</h2>
+          <p className="text-gray-600">Revisit and manage your past adventures</p>
         </div>
 
         {trips.length === 0 ? (
-          <div className="text-center py-16">
+          <div className="text-center py-20">
             <MapPin className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No trips yet</h3>
-            <p className="text-gray-600 mb-6">Start planning your first road trip adventure!</p>
+            <p className="text-gray-600 mb-6">Start planning your first journey today!</p>
             <Link href="/ai-planner/plan">
               <Button className="bg-indigo-600 hover:bg-indigo-700">
                 <Plus className="h-4 w-4 mr-2" />
@@ -149,17 +133,17 @@ export default function Dashboard() {
             </Link>
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {trips.map((trip) => (
-              <Card key={trip.id} className="hover:shadow-lg transition-shadow">
+              <Card key={trip.id} className="hover:shadow-lg transition-shadow flex flex-col">
                 <CardHeader>
-                  <CardTitle className="text-lg">{trip.title}</CardTitle>
+                  <CardTitle className="text-lg font-semibold">{trip.title}</CardTitle>
                   <CardDescription>
                     {trip.start_location} → {trip.destination}
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm text-gray-600">
+                <CardContent className="flex flex-col flex-1">
+                  <div className="space-y-2 text-sm text-gray-600 flex-1">
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 mr-2" />
                       {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
