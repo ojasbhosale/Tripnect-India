@@ -76,7 +76,7 @@ export default function PlanTrip() {
     try {
       const result = await itineraryService.generateItinerary(tripData)
       toast({ title: "Success!", description: "Your itinerary has been generated." })
-      router.push(`/itinerary/${result.tripId}`)
+      router.push(`/ai-planner/itinerary/${result.tripId}`)
     } catch (error: any) {
       toast({
         title: "Error",

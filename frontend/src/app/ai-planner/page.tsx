@@ -114,7 +114,7 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <Link href="/plan">
+              <Link href="/ai-planner/plan">
                 <Button className="bg-indigo-600 hover:bg-indigo-700">
                   <Plus className="h-4 w-4 mr-2" />
                   New Trip
@@ -141,7 +141,7 @@ export default function Dashboard() {
             <MapPin className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No trips yet</h3>
             <p className="text-gray-600 mb-6">Start planning your first road trip adventure!</p>
-            <Link href="/plan">
+            <Link href="/ai-planner/plan">
               <Button className="bg-indigo-600 hover:bg-indigo-700">
                 <Plus className="h-4 w-4 mr-2" />
                 Plan Your First Trip
@@ -170,7 +170,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="flex justify-between items-center mt-4">
-                    <Link href={`/itinerary/${trip.id}`}>
+                    <Link href={`/ai-planner/itinerary/${trip.id}`}>
                       <Button variant="outline" size="sm">
                         <Eye className="h-4 w-4 mr-1" />
                         View
