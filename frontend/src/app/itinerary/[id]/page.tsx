@@ -78,7 +78,7 @@ export default function ItineraryPage() {
         description: error.message || "Trip not found",
         variant: "destructive",
       })
-      router.push("/dashboard")
+      router.push("/ai-planner")
     } finally {
       setIsLoading(false)
     }
@@ -111,7 +111,7 @@ export default function ItineraryPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Trip not found</h2>
-          <Button onClick={() => router.push("/dashboard")}>Back to Dashboard</Button>
+          <Button onClick={() => router.push("/ai-planner")}>Back to Dashboard</Button>
         </div>
       </div>
     )
@@ -124,7 +124,7 @@ export default function ItineraryPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" onClick={() => router.push("/dashboard")}>
+              <Button variant="ghost" onClick={() => router.push("/ai-planner")}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>

@@ -107,7 +107,7 @@ export default function PlanTrip() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" onClick={() => router.push("/dashboard")}>
+              <Button variant="ghost" onClick={() => router.push("/ai-planner")}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Dashboard
               </Button>

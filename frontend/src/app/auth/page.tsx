@@ -4,13 +4,12 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { MapPin, Eye, EyeOff, ArrowLeft } from "lucide-react"
+import { Plane, Eye, EyeOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { authService } from "@/services/auth"
 
@@ -31,7 +30,7 @@ export default function AuthPage() {
     try {
       await authService.login(email, password)
       toast({ title: "Welcome back!", description: "Successfully logged in." })
-      router.push("/dashboard")
+      router.push("/")
     } catch (error: any) {
       toast({
         title: "Login failed",
@@ -72,20 +71,12 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Back to Home */}
-        <div className="mb-6">
-          <Link href="/">
-            <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Home
-            </Button>
-          </Link>
-        </div>
+        
 
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <MapPin className="h-8 w-8 text-indigo-600" />
+            <Plane className="h-8 w-8 text-indigo-600" />
             <h1 className="text-2xl font-bold text-gray-900">TripNect India</h1>
           </div>
           <p className="text-gray-600">Your AI-powered road trip companion</p>
