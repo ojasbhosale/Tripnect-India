@@ -4,20 +4,16 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import HomePage from "@/pages/Home"
 import { authService } from "@/services/auth"
-import Navbar from "@/components/navbar"
 
 export default function Page() {
   const [loading, setLoading] = useState(true)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const user = await authService.getCurrentUser?.()
-        if (user) {
-          setIsLoggedIn(true)
-        } else {
+        if (!user) {
           router.replace("/auth")
         }
       } catch {
@@ -37,14 +33,5 @@ export default function Page() {
     )
   }
 
-  return (
-    <>
-      {isLoggedIn && (
-        <>
-          <Navbar />
-          <HomePage />
-        </>
-      )}
-    </>
-  )
+  return <HomePage />
 }

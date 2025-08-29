@@ -10,7 +10,6 @@ import { useToast } from "@/hooks/use-toast"
 import { authService } from "@/services/auth"
 import { tripService } from "@/services/trips"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import Navbar from "@/components/navbar"
 
 interface Trip {
   id: number
@@ -26,23 +25,24 @@ interface Trip {
 export default function Dashboard() {
   const [trips, setTrips] = useState<Trip[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const router = useRouter()
   const { toast } = useToast()
 
   useEffect(() => {
-    checkAuth()
-  }, [])
-
-  const checkAuth = async () => {
-    try {
-      const userData = await authService.getCurrentUser()
-      setUser(userData)
-      await fetchTrips()
-    } catch (error) {
-      router.push("/auth")
+    const checkAuth = async () => {
+      try {
+        const userData = await authService.getCurrentUser()
+        if (!userData) throw new Error("Not logged in")
+        await fetchTrips()
+      } catch (error) {
+        router.replace("/auth") // replace to avoid going back
+      } finally {
+        setIsCheckingAuth(false)
+      }
     }
-  }
+    checkAuth()
+  }, [router])
 
   const fetchTrips = async () => {
     try {
@@ -82,6 +82,15 @@ export default function Dashboard() {
     })
   }
 
+  // 🔹 While checking auth, block everything
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    )
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -92,9 +101,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Navbar */}
-      <Navbar />
-
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-indigo-50 to-blue-100 border-b">
         <div className="container mx-auto px-4 py-12 text-center">
