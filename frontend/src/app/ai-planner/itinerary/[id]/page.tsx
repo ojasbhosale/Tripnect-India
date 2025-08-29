@@ -1,3 +1,5 @@
+
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -5,7 +7,7 @@ import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Calendar, Users, Clock, Download, ArrowLeft } from "lucide-react"
+import { MapPin, Calendar, Users, Clock, Download, ArrowLeft, FileText } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { authService } from "@/services/auth"
 import { tripService } from "@/services/trips"
@@ -49,6 +51,7 @@ interface Trip {
 export default function ItineraryPage() {
   const [trip, setTrip] = useState<Trip | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isExporting, setIsExporting] = useState(false)
   const params = useParams()
   const router = useRouter()
   const { toast } = useToast()
@@ -84,17 +87,202 @@ export default function ItineraryPage() {
     }
   }
 
-  const exportToPDF = () => {
-    // This would integrate with a PDF generation library
-    toast({ title: "Coming Soon", description: "PDF export feature will be available soon!" })
-  }
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-IN", {
       weekday: "long",
       year: "numeric",
       month: "long",
       day: "numeric",
+    })
+  }
+
+  // PDF Export using html2pdf.js
+  const exportToPDF = async () => {
+    if (!trip) return
+    
+    setIsExporting(true)
+    
+    try {
+      // Dynamically import html2pdf to avoid SSR issues
+      const html2pdf = (await import('html2pdf.js')).default
+      
+      // Create a clean HTML version for PDF
+      const element = document.createElement('div')
+      element.style.padding = '30px'
+      element.style.fontFamily = 'Arial, sans-serif'
+      element.style.backgroundColor = 'white'
+      element.style.color = 'black'
+      element.style.lineHeight = '1.6'
+      
+      element.innerHTML = `
+        <div style="margin-bottom: 40px; border-bottom: 3px solid #4f46e5; padding-bottom: 20px;">
+          <h1 style="color: #4f46e5; margin: 0 0 10px 0; font-size: 28px; font-weight: bold;">${trip.title}</h1>
+          <p style="color: #666; margin: 0; font-size: 18px; font-weight: 500;">${trip.start_location} → ${trip.destination}</p>
+        </div>
+        
+        <div style="margin-bottom: 40px;">
+          <h2 style="color: #333; margin: 0 0 20px 0; font-size: 22px; font-weight: bold;">Trip Overview</h2>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div style="background: #f8fafc; padding: 15px; border-radius: 8px;">
+              <strong style="color: #4f46e5;">Dates:</strong><br>
+              ${formatDate(trip.start_date)} - ${formatDate(trip.end_date)}
+            </div>
+            <div style="background: #f8fafc; padding: 15px; border-radius: 8px;">
+              <strong style="color: #4f46e5;">Travelers:</strong> ${trip.travelers}<br>
+              <strong style="color: #4f46e5;">Budget:</strong> ${trip.budget_level}
+            </div>
+          </div>
+          
+          ${trip.interests && trip.interests.length > 0 ? 
+            `<div style="margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 8px;">
+              <strong style="color: #4f46e5;">Interests:</strong> ${trip.interests.join(', ')}
+            </div>` : ''}
+          
+          <div style="background: #f8fafc; padding: 20px; border-radius: 8px;">
+            <h3 style="margin: 0 0 10px 0; color: #4f46e5;">Summary</h3>
+            <p style="margin: 0; line-height: 1.8;">${trip.itinerary.summary}</p>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+            <div style="background: #ecfdf5; padding: 15px; border-radius: 8px; border-left: 4px solid #10b981;">
+              <strong style="color: #047857;">Total Distance:</strong><br>
+              <span style="font-size: 18px; font-weight: 600;">${trip.itinerary.total_distance}</span>
+            </div>
+            <div style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+              <strong style="color: #92400e;">Estimated Cost:</strong><br>
+              <span style="font-size: 18px; font-weight: 600;">${trip.itinerary.estimated_cost}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <h2 style="color: #333; margin: 0 0 25px 0; font-size: 22px; font-weight: bold;">Daily Itinerary</h2>
+          ${trip.itinerary.days.map(day => `
+            <div style="margin-bottom: 35px; page-break-inside: avoid;">
+              <div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 15px; margin: 0 0 20px 0; border-radius: 10px;">
+                <h3 style="margin: 0; font-size: 20px; font-weight: bold;">
+                  Day ${day.day} - ${formatDate(day.date)}
+                </h3>
+              </div>
+              
+              ${day.activities.map((activity, index) => `
+                <div style="margin-bottom: 20px; padding: 20px; background: white; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                  <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                    <span style="background: #4f46e5; color: white; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 12px; margin-right: 15px;">
+                      ${activity.time}
+                    </span>
+                    <span style="font-weight: bold; font-size: 16px; color: #333;">
+                      ${activity.activity}
+                    </span>
+                  </div>
+                  
+                  <div style="color: #666; margin-bottom: 10px; font-size: 14px;">
+                    📍 ${activity.location}
+                  </div>
+                  
+                  <p style="margin: 0; line-height: 1.6; color: #555;">
+                    ${activity.description}
+                  </p>
+                </div>
+              `).join('')}
+            </div>
+          `).join('')}
+        </div>
+        
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #e5e7eb; text-align: center; color: #666;">
+          <p style="margin: 0; font-size: 14px;">Generated by TripNect India - Your AI Travel Companion</p>
+          <p style="margin: 5px 0 0 0; font-size: 12px;">Exported on ${new Date().toLocaleDateString('en-IN')}</p>
+        </div>
+      `
+      
+      const options = {
+        margin: 0.5,
+        filename: `${trip.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_itinerary.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          letterRendering: true
+        },
+        jsPDF: { 
+          unit: 'in', 
+          format: 'a4', 
+          orientation: 'portrait',
+          compress: true
+        }
+      }
+      
+      await html2pdf().set(options).from(element).save()
+      
+      toast({
+        title: "Success!",
+        description: "Your itinerary has been exported to PDF",
+      })
+      
+    } catch (error) {
+      console.error('PDF export error:', error)
+      toast({
+        title: "Error",
+        description: "Failed to export PDF. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  // Alternative: Export as formatted text file
+  const exportToText = () => {
+    if (!trip) return
+    
+    const textContent = `
+${trip.title}
+${'='.repeat(trip.title.length)}
+
+Route: ${trip.start_location} → ${trip.destination}
+Dates: ${formatDate(trip.start_date)} - ${formatDate(trip.end_date)}
+Travelers: ${trip.travelers}
+Budget Level: ${trip.budget_level}
+
+${trip.interests && trip.interests.length > 0 ? `Interests: ${trip.interests.join(', ')}\n` : ''}
+
+TRIP OVERVIEW
+${'-'.repeat(13)}
+${trip.itinerary.summary}
+
+Total Distance: ${trip.itinerary.total_distance}
+Estimated Cost: ${trip.itinerary.estimated_cost}
+
+DAILY ITINERARY
+${'-'.repeat(15)}
+
+${trip.itinerary.days.map(day => `
+DAY ${day.day} - ${formatDate(day.date)}
+${'-'.repeat(40)}
+
+${day.activities.map(activity => `
+${activity.time} - ${activity.activity}
+Location: ${activity.location}
+${activity.description}
+
+`).join('')}
+`).join('')}
+
+Generated by TripNect India
+Exported on: ${new Date().toLocaleDateString('en-IN')}
+    `.trim()
+    
+    const blob = new Blob([textContent], { type: 'text/plain' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${trip.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_itinerary.txt`
+    a.click()
+    window.URL.revokeObjectURL(url)
+    
+    toast({
+      title: "Success!",
+      description: "Your itinerary has been exported as text file",
     })
   }
 
@@ -135,10 +323,31 @@ export default function ItineraryPage() {
                 </p>
               </div>
             </div>
-            <Button onClick={exportToPDF} variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Export PDF
-            </Button>
+            
+            {/* Export buttons */}
+            <div className="flex space-x-2">
+              <Button onClick={exportToText} variant="outline">
+                <FileText className="h-4 w-4 mr-2" />
+                Export Text
+              </Button>
+              <Button 
+                onClick={exportToPDF} 
+                variant="outline"
+                disabled={isExporting}
+              >
+                {isExporting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Exporting...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export PDF
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -217,8 +426,6 @@ export default function ItineraryPage() {
                           </div>
                           <div className="flex-grow">
                             <div className="flex items-center space-x-2 mb-1">
-                              <span className="font-medium text-indigo-600">{activity.time}</span>
-                              <span className="text-gray-400">•</span>
                               <span className="font-medium">{activity.activity}</span>
                             </div>
                             <div className="flex items-center text-sm text-gray-600 mb-2">
@@ -236,7 +443,7 @@ export default function ItineraryPage() {
             </div>
           </div>
 
-          {/* Map */}
+                    {/* Map */}
           <div className="lg:col-span-1">
             <Card className="sticky top-4">
               <CardHeader>
@@ -259,4 +466,4 @@ export default function ItineraryPage() {
       </div>
     </div>
   )
-}
+}                        
